@@ -1,10 +1,13 @@
 server:
   port: 8080
 
-spring:
-  application:
-    name: finflow
+application:
 
+  security:
+    jwt:
+      secret-key: GuQCXPxC97eoCeh3chn6VClDqoZCPuL3pAb0WPA9ZbsRTm39OVn7hNrEP9HhGY/P
+
+spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/finflow
     username: postgres
