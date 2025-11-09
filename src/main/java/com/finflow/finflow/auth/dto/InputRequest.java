@@ -2,7 +2,7 @@ package com.finflow.finflow.auth.dto;
 
 import jakarta.validation.constraints.*;
 
-public record RegisterRequest (
+public record InputRequest(
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     String email,

@@ -1,11 +1,14 @@
 package com.finflow.finflow.auth.controller;
 
-import com.finflow.finflow.auth.dto.RegisterRequest;
+import com.finflow.finflow.auth.dto.AuthResponse;
+import com.finflow.finflow.auth.dto.InputRequest;
 import com.finflow.finflow.auth.entity.User;
 import com.finflow.finflow.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -19,7 +22,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegisterRequest request){
+    public ResponseEntity<AuthResponse> register(@RequestBody InputRequest request){
         return ResponseEntity.ok(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody InputRequest request){
+        return ResponseEntity.ok(authService.login(request));
     }
 }
