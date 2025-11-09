@@ -1,15 +1,21 @@
+-- === USERS ===
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    role VARCHAR(50) NOT NULL DEFAULT 'USER',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- === WALLETS ===
 CREATE TABLE wallets (
     id BIGSERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id),
-    balance DECIMAL(18,2) DEFAULT 0,
-    currency VARCHAR(10) DEFAULT 'USD',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    balance NUMERIC(18,2) NOT NULL DEFAULT 0 CHECK (balance >= 0),
+    currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id)
 );
+
+-- === INDICES ===
+CREATE INDEX idx_wallet_user_id ON wallets(user_id);

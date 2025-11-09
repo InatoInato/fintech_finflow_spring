@@ -8,9 +8,14 @@ import com.finflow.finflow.auth.security.JwtService;
 import com.finflow.finflow.auth.service.AuthService;
 import com.finflow.finflow.exception.InvalidCredentialsException;
 import com.finflow.finflow.exception.UserAlreadyExistsException;
+import com.finflow.finflow.wallet.entity.Wallet;
+import com.finflow.finflow.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final WalletRepository walletRepository;
 
     @Override
     public AuthResponse register(InputRequest request) {
@@ -29,6 +35,11 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(request.email());
         user.setPassword(passwordEncoder.encode(request.password()));
         repository.save(user);
+
+        Wallet wallet = new Wallet();
+        wallet.setCurrency("USD");
+        wallet.setUser(user);
+        walletRepository.save(wallet);
 
         String token = jwtService.generateToken(request.email());
         return new AuthResponse(user.getEmail(), token);
