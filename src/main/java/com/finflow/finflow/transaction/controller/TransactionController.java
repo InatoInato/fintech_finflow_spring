@@ -4,6 +4,8 @@ import com.finflow.finflow.transaction.dto.TransactionRequestDto;
 import com.finflow.finflow.transaction.entity.Transaction;
 import com.finflow.finflow.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +18,16 @@ public class TransactionController {
     private final TransactionService service;
 
     @PostMapping
-    public Transaction createTransaction(@RequestBody TransactionRequestDto dto){
-        return service.createTransaction(dto.fromWalletId(), dto.toWalletId(), dto.amount());
+    public ResponseEntity<Transaction> createTransaction(
+            @RequestBody TransactionRequestDto request,
+            Authentication authentication
+            ){
+        Transaction transaction = service.createTransaction(
+                authentication,
+                request.fromWalletId(),
+                request.toWalletId(),
+                request.amount()
+        );
+        return ResponseEntity.ok(transaction);
     }
 }
