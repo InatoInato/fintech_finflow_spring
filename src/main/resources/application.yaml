@@ -2,21 +2,20 @@ server:
   port: 8080
 
 application:
-
   security:
     jwt:
-      secret-key: GuQCXPxC97eoCeh3chn6VClDqoZCPuL3pAb0WPA9ZbsRTm39OVn7hNrEP9HhGY/P
+      secret-key: ${APPLICATION_SECURITY_JWT_SECRET_KEY:local-secret}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/finflow
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/finflow}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
         format_sql: true
@@ -24,5 +23,5 @@ spring:
     show-sql: true
 
   flyway:
-    enabled: true
-    locations: classpath:db/migration
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
+    locations: ${SPRING_FLYWAY_LOCATIONS:classpath:db/migration}

@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: finflow
       POSTGRES_DB: finflow
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -24,7 +24,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/finflow
       SPRING_DATASOURCE_USERNAME: finflow
       SPRING_DATASOURCE_PASSWORD: finflow
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+      APPLICATION_SECURITY_JWT_SECRET_KEY: GuQCXPxC97eoCeh3chn6VClDqoZCPuL3pAb0WPA9ZbsRTm39OVn7hNrEP9HhGY/P
     restart: always
 
 volumes:
