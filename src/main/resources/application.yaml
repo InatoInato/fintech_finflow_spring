@@ -4,7 +4,7 @@ server:
 application:
   security:
     jwt:
-      secret-key: ${APPLICATION_SECURITY_JWT_SECRET_KEY:local-secret}
+      secret-key: VIrELCbxhdoyfPHfHYiCJCnwEVO6dPOvWd+FtbM+uXmnwkxHY79CqBNPq3Hrx1D5NZTuqfOcqo5iVgeRiEZMcg==
 
 spring:
   datasource:
@@ -25,3 +25,8 @@ spring:
   flyway:
     enabled: ${SPRING_FLYWAY_ENABLED:true}
     locations: ${SPRING_FLYWAY_LOCATIONS:classpath:db/migration}
+
+
+logging:
+  level:
+    org.springdoc: DEBUG
