@@ -116,24 +116,14 @@ Authorization: Bearer <token>
 
 ## 👛 Wallet Endpoints
 
-### **Create wallet**
-
-```
-POST /api/v1/wallet
-```
-
-Body:
-
-```json
-{
-  "currency": "USD"
-}
-```
+After registration wallet will create automaticly :)
 
 ### **Get all wallets of current user**
 
+Use jwt token!!!
+
 ```
-GET /api/v1/wallet
+GET /api/v1/wallet 
 ```
 
 ---
