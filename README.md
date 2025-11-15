@@ -37,6 +37,8 @@ This README explains how to run the project locally, how the API works, and how 
 
 ## 📦 How to Run the Project
 
+!!! Requires Docker Desktop (with Linux containers, WSL 2 recommended) !!!
+
 ### **1. Clone the repository**
 
 ```
