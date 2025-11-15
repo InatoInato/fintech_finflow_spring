@@ -4,6 +4,7 @@ import com.finflow.finflow.auth.dto.AuthResponse;
 import com.finflow.finflow.auth.dto.InputRequest;
 import com.finflow.finflow.auth.entity.User;
 import com.finflow.finflow.auth.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,7 +25,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody InputRequest request){
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody InputRequest request){
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -37,7 +38,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody InputRequest request){
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody InputRequest request){
         return ResponseEntity.ok(authService.login(request));
     }
 }

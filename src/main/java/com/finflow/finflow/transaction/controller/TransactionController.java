@@ -3,6 +3,7 @@ package com.finflow.finflow.transaction.controller;
 import com.finflow.finflow.transaction.dto.TransactionRequestDto;
 import com.finflow.finflow.transaction.entity.Transaction;
 import com.finflow.finflow.transaction.service.TransactionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,7 +20,7 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(
-            @RequestBody TransactionRequestDto request,
+            @Valid @RequestBody TransactionRequestDto request,
             Authentication authentication
             ){
         Transaction transaction = service.createTransaction(

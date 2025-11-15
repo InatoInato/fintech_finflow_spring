@@ -5,6 +5,7 @@ import com.finflow.finflow.auth.repository.UserRepository;
 import com.finflow.finflow.wallet.dto.TopUpRequest;
 import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.service.WalletService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,7 @@ public class WalletController {
     }
 
     @PostMapping("/topup")
-    public ResponseEntity<Wallet> topUp(@RequestBody TopUpRequest request) {
+    public ResponseEntity<Wallet> topUp(@Valid @RequestBody TopUpRequest request) {
         Wallet wallet = walletService.topUp(request.walletId(), request.amount());
         return ResponseEntity.ok(wallet);
     }
