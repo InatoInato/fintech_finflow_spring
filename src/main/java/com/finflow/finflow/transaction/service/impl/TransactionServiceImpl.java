@@ -2,6 +2,9 @@ package com.finflow.finflow.transaction.service.impl;
 
 import com.finflow.finflow.auth.entity.User;
 import com.finflow.finflow.auth.repository.UserRepository;
+import com.finflow.finflow.exception.BadRequestException;
+import com.finflow.finflow.exception.ForbiddenException;
+import com.finflow.finflow.exception.NotFoundException;
 import com.finflow.finflow.transaction.entity.Transaction;
 import com.finflow.finflow.transaction.entity.TransactionType;
 import com.finflow.finflow.transaction.repository.TransactionRepository;
@@ -20,59 +23,49 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
+
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
 
     @Transactional
     @Override
-    public Transaction createTransaction(Authentication authentication,
+    public Transaction createTransaction(Authentication auth,
                                          Long fromWalletId,
                                          Long toWalletId,
                                          BigDecimal amount) {
-        String email = authentication.getName();
-        User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (fromWalletId == null && toWalletId == null) {
-            throw new IllegalArgumentException("Both wallets cannot be null");
-        }
+        validateRequest(fromWalletId, toWalletId, amount);
 
-        Wallet fromWallet = null;
-        Wallet toWallet = null;
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (fromWalletId != null) {
-            fromWallet = walletRepository.findById(fromWalletId)
-                    .orElseThrow(() -> new RuntimeException("From wallet not found"));
+        Wallet fromWallet = (fromWalletId != null)
+                ? getWalletOrThrow(fromWalletId)
+                : null;
 
-            if (!fromWallet.getUser().getId().equals(currentUser.getId())) {
-                throw new SecurityException("You are not allowed to send from this wallet");
-            }
+        Wallet toWallet = (toWalletId != null)
+                ? getWalletOrThrow(toWalletId)
+                : null;
 
-            if (fromWallet.getBalance().compareTo(amount) < 0) {
-                throw new RuntimeException("Insufficient balance");
-            }
-
+        if (fromWallet != null) {
+            validateOwnership(user, fromWallet);
+            validateBalance(fromWallet, amount);
             fromWallet.setBalance(fromWallet.getBalance().subtract(amount));
-            walletRepository.save(fromWallet);
         }
 
-        if (toWalletId != null) {
-            toWallet = walletRepository.findById(toWalletId)
-                    .orElseThrow(() -> new RuntimeException("To wallet not found"));
-
+        if (toWallet != null) {
             toWallet.setBalance(toWallet.getBalance().add(amount));
-            walletRepository.save(toWallet);
         }
+
+        // Save wallets only when needed
+        saveWallets(fromWallet, toWallet);
 
         Transaction transaction = new Transaction();
         transaction.setFromWallet(fromWallet);
         transaction.setToWallet(toWallet);
         transaction.setAmount(amount);
-        transaction.setCurrency(
-                fromWallet != null ? fromWallet.getCurrency() :
-                        Objects.requireNonNull(toWallet).getCurrency()
-        );
+        transaction.setCurrency(resolveCurrency(fromWallet, toWallet));
         transaction.setType(determineType(fromWallet, toWallet));
         transaction.setCreatedAt(LocalDateTime.now());
 
@@ -80,9 +73,54 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
-    private TransactionType determineType(Wallet fromWallet, Wallet toWallet){
-        if(fromWallet != null && toWallet != null) return TransactionType.TRANSFER;
-        if(fromWallet == null) return TransactionType.DEPOSIT;
+    // ------------------------------------------------------
+    // VALIDATION
+    // ------------------------------------------------------
+
+    private void validateRequest(Long fromWallet, Long toWallet, BigDecimal amount) {
+        if (fromWallet == null && toWallet == null) {
+            throw new BadRequestException("Both 'fromWalletId' and 'toWalletId' cannot be null");
+        }
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Amount must be greater than zero");
+        }
+    }
+
+    private Wallet getWalletOrThrow(Long id) {
+        return walletRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Wallet not found: " + id));
+    }
+
+    private void validateOwnership(User user, Wallet wallet) {
+        if (!Objects.equals(wallet.getUser().getId(), user.getId())) {
+            throw new ForbiddenException("You do not own this wallet");
+        }
+    }
+
+    private void validateBalance(Wallet wallet, BigDecimal amount) {
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new BadRequestException("Insufficient balance");
+        }
+    }
+
+    private void saveWallets(Wallet fromWallet, Wallet toWallet) {
+        if (fromWallet != null) walletRepository.save(fromWallet);
+        if (toWallet != null) walletRepository.save(toWallet);
+    }
+
+
+    // ------------------------------------------------------
+    // BUSINESS LOGIC
+    // ------------------------------------------------------
+
+    private String resolveCurrency(Wallet fromWallet, Wallet toWallet) {
+        if (fromWallet != null) return fromWallet.getCurrency();
+        return toWallet.getCurrency();
+    }
+
+    private TransactionType determineType(Wallet fromWallet, Wallet toWallet) {
+        if (fromWallet != null && toWallet != null) return TransactionType.TRANSFER;
+        if (fromWallet == null) return TransactionType.DEPOSIT;
         return TransactionType.WITHDRAW;
     }
 }
