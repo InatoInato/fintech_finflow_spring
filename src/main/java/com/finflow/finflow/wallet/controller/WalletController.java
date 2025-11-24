@@ -2,6 +2,8 @@ package com.finflow.finflow.wallet.controller;
 
 import com.finflow.finflow.auth.entity.User;
 import com.finflow.finflow.auth.repository.UserRepository;
+import com.finflow.finflow.config.RedisRateLimiter;
+import com.finflow.finflow.exception.TooManyRequestsException;
 import com.finflow.finflow.wallet.dto.TopUpRequest;
 import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.service.WalletService;
@@ -17,10 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class WalletController {
     private final WalletService walletService;
     private final UserRepository userRepository;
+    private final RedisRateLimiter rateLimiter;
 
     @GetMapping
     public ResponseEntity<Wallet> getMyWallet(Authentication authentication){
         String email = authentication.getName();
+
+        if (!rateLimiter.isAllowed(email)) {
+            throw new TooManyRequestsException("Too many requests. Please try again later.");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

@@ -87,4 +87,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleAllExceptions(Exception ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
     }
+
+    // Rate limiter
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Object> handleTooManyRequests(TooManyRequestsException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request.getDescription(false));
+    }
+
 }
