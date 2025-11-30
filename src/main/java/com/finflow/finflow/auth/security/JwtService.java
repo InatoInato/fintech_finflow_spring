@@ -25,7 +25,7 @@ public class JwtService {
     // ✅ Token generation
     public String generateToken(String subject) {
         Date now = new Date();
-        Date exp = new Date(now.getTime() + 1000L * 60 * 60 * 24); // 24 часа
+        Date exp = new Date(now.getTime() + 1000L * 60 * 60 * 24); // 24 hours
 
         return Jwts.builder()
                 .setSubject(subject)
