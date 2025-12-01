@@ -22,10 +22,11 @@ This README explains how to run the project locally, with Docker, how to call en
 
 ## Prerequisites
 
-* Java 17+ / JDK 25 (project compiled with Java 25 in dev) installed
+* Java 21+ / JDK 25 (project compiled with Java 25 in dev) installed
 * Maven
 * Docker & Docker Compose (if running with containers)
 * PostgreSQL (only if you run without Docker)
+* Redis (only as rate limiter)
 
 ---
 
