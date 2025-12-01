@@ -1,241 +1,229 @@
-# FinFlow – Modern Wallet & Transaction API
+# Finflow — Backend README
 
-FinFlow is a clean and production-ready **Spring Boot 3** backend project that provides user authentication, wallet management, and transaction handling (deposit, withdraw, transfer). It is fully documented with Swagger/OpenAPI and runs via Docker.
-
-This README explains how to run the project locally, how the API works, and how to test everything.
+> **Purpose:** a compact, secure fintech-ish backend (Spring Boot) with users, wallets, top-up and transactions — ready to be shown in portfolio.
 
 ---
 
-## 🚀 Features
+## Quick overview
 
-* **User Authentication** (Register/Login with JWT)
-* **Wallet Management** (multiple wallets per user)
-* **Transactions**:
+This repository contains a Spring Boot backend implementing:
 
-  * Deposit
-  * Withdraw
-  * Wallet-to-wallet transfer
-* **Validation** with Jakarta Validation
-* **Global Error Handling** (400/401/403/404/500)
-* **Swagger UI** auto-generated OpenAPI documentation
-* **Dockerized** for easy launch
-* Clean project structure with services, DTOs, repositories
+* JWT-based authentication (register/login)
+* Wallets (1:1 user -> wallet)
+* Top-up and Transactions (deposit/withdraw/transfer)
+* Flyway migrations (Postgres)
+* Optional Redis for caching / rate-limiting
+* OpenAPI / Swagger UI
+* Global error handling and validation
 
----
-
-## 🛠 Technologies
-
-* Java 21
-* Spring Boot 3
-* Spring Security (JWT)
-* PostgreSQL
-* Docker + Docker Compose
-* Swagger / Springdoc OpenAPI
-* Lombok
+This README explains how to run the project locally, with Docker, how to call endpoints (curl examples), how to enable Redis, and troubleshooting notes.
 
 ---
 
-## 📦 How to Run the Project
+## Prerequisites
 
-!!! Requires Docker Desktop (with Linux containers, WSL 2 recommended) !!!
+* Java 17+ / JDK 25 (project compiled with Java 25 in dev) installed
+* Maven
+* Docker & Docker Compose (if running with containers)
+* PostgreSQL (only if you run without Docker)
 
-### **1. Clone the repository**
+---
 
+## Build locally (without Docker)
+
+1. Build the jar:
+
+```bash
+mvn -DskipTests clean package
 ```
-git clone https://github.com/your/repo.git
-cd finflow
+
+2. Create a `.env` or export env vars used by the app (see *Environment variables* below).
+
+3. Run the jar:
+
+```bash
+java -jar target/finflow-0.0.1-SNAPSHOT.jar
 ```
 
-### **2. Start the backend using Docker Compose**
+By default the app uses `server.port=8080`.
 
-```
+---
+
+## Run with Docker (recommended for demos)
+
+**1.** Build the app and bring up services with Docker Compose (example `docker-compose.yml` included in repo):
+
+```bash
+mvn -DskipTests clean package
 docker compose up --build
 ```
 
-This will start:
+**2.** The compose file should include:
 
-* `backend` (Spring Boot)
-* `postgres` database
+* `db` (postgres:17)
+* `app` (built from Dockerfile)
+* optionally `redis` (for rate limiting / caching)
 
-Backend runs on:
+**Common docker issue**: `bind: address already in use` on port 5432 — stop local Postgres or change compose `ports` (or run Postgres on a different host port).
 
+---
+
+## Environment variables
+
+You can pass configuration either via `application.yml` or environment variables. Important vars:
+
+```text
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/finflow
+SPRING_DATASOURCE_USERNAME=finflow
+SPRING_DATASOURCE_PASSWORD=finflow
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+APPLICATION_SECURITY_JWT_SECRET_KEY=<BASE64_OR_RAW_SECRET>
+SPRING_FLYWAY_ENABLED=true
+SPRING_FLYWAY_LOCATIONS=classpath:db/migration
+SPRING_REDIS_HOST=redis
+SPRING_REDIS_PORT=6379
 ```
-http://localhost:8080
+
+**JWT secret note:** use a sufficiently long secret for HMAC-SHA (>= 256 bits). If you see `Key byte array is 136 bits` error, replace the secret with a stronger one (for example use `io.jsonwebtoken.security.Keys.secretKeyFor(SignatureAlgorithm.HS256)` to generate a secure secret and store its Base64 form in env).
+
+---
+
+## Swagger / OpenAPI
+
+* When the app runs, open: `http://localhost:8080/swagger-ui/index.html` (or `/swagger-ui.html`) — you will see all endpoints and can try requests from the UI.
+* If Swagger UI returns `403` in the browser: make sure your security config allows unauthenticated access to `/v3/api-docs/**` and `/swagger-ui/**` paths.
+
+---
+
+## API quick-call examples (curl)
+
+### Register
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"qwerty123"}'
+```
+
+Response contains `token`.
+
+### Login
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@example.com","password":"qwerty123"}'
+```
+
+### Top-up
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/wallet/topup \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"walletId":1,"amount":1000}'
+```
+
+### Get my wallet
+
+```bash
+curl -s -X GET http://localhost:8080/api/v1/wallet \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### Create transaction (transfer)
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/transaction \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"fromWalletId":1,"toWalletId":2,"amount":100}'
 ```
 
 ---
 
-## 📖 API Documentation (Swagger)
+## Postman / Collection
 
-After running Docker, open:
-
-```
-http://localhost:8080/swagger-ui/index.html
-```
-
-This shows all endpoints with ability to test requests.
+You can import these curl examples as requests into Postman, create an `Auth` request to obtain JWT and then set `{{token}}` environment variable for other requests.
 
 ---
 
-## 🔐 Authentication Flow
+## Enabling Redis (for caching / rate limiter)
 
-### **Register**
+Add `redis` service to your `docker-compose.yml`:
 
-```
-POST /api/v1/auth/register
-```
-
-Body:
-
-```json
-{
-  "email": "user@example.com",
-  "password": "strongpassword"
-}
+```yaml
+redis:
+  image: redis:7
+  container_name: finflow-redis
+  ports:
+    - "6379:6379"
 ```
 
-### **Login**
+Enable Redis properties in `application.yml` or env:
 
-```
-POST /api/v1/auth/login
-```
-
-Response returns JWT:
-
-```json
-{
-  "token": "your.jwt.token"
-}
+```text
+SPRING_REDIS_HOST=redis
+SPRING_REDIS_PORT=6379
 ```
 
-Copy and use this token for all authorized requests:
+**Rate limiter idea (sliding window):**
 
-```
-Authorization: Bearer <token>
-```
+* Use Redis INCR with TTL per key `rate:{userId}:{endpoint}`
+* Key TTL = window (seconds)
+* If INCR result > limit → reject with `429 Too Many Requests`
+
+I can add a sample `RedisRateLimiter` bean implementation and filter if you want.
 
 ---
 
-## 👛 Wallet Endpoints
+## Security checklist (fintech-ish)
 
-After registration wallet will create automaticly :)
-
-### **Get all wallets of current user**
-
-Use jwt token!!!
-
-```
-GET /api/v1/wallet 
-```
-
----
-
-## 💸 Transaction Endpoints
-
-### **Transfer / Deposit / Withdraw**
-
-```
-POST /api/v1/transaction
-```
-
-All three operations use the same endpoint:
-
-#### **Transfer**
-
-```json
-{
-  "fromWalletId": 1,
-  "toWalletId": 2,
-  "amount": 100
-}
-```
-
-#### **Deposit**
-
-```json
-{
-  "toWalletId": 2,
-  "amount": 50
-}
-```
-
-#### **Withdraw**
-
-```json
-{
-  "fromWalletId": 1,
-  "amount": 20
-}
-```
-
-### Error cases automatically handled:
-
-* 400 – insufficient balance
-* 403 – wallet does not belong to user
-* 404 – wallet not found
-* 401 – no token
+* Use HTTPS in production (TLS termination via proxy / load balancer)
+* Ensure JWT uses a secure key of at least 256 bits
+* Protect endpoints with proper authorization (check ownership of wallet before transfer)
+* Input validation (Jakarta Validation annotations already used)
+* Use parameterized queries (Spring Data/JPA prevents SQL injection by default)
+* Enable strong CORS policy
+* Add security headers (CSP, X-Frame-Options, HSTS)
+* Rate limiting per user/IP (Redis)
+* Log suspicious events, but never log tokens or passwords
 
 ---
 
-## 🗂 Project Structure
+## Tests
 
+Run unit/integration tests with Maven:
+
+```bash
+mvn test
 ```
-finflow/
-│
-├─ auth/
-│  ├─ controller/
-│  ├─ service/
-│  ├─ repository/
-│  └─ dto/
-│
-├─ wallet/
-│  ├─ controller/
-│  ├─ service/
-│  ├─ repository/
-│  └─ entity/
-│
-├─ transaction/
-│  ├─ controller/
-│  ├─ service/
-│  ├─ repository/
-│  └─ entity/
-│
-├─ exception/
-├─ config/
-└─ security/
-```
+
+If you prefer lightweight controller tests without spinning DB, add `@WebMvcTest` and mock services.
 
 ---
 
-## 🐳 Docker Compose
+## Troubleshooting
 
-The project uses PostgreSQL with default dev credentials:
-
-```
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=finflow
-```
-
-You can modify them in `docker-compose.yml`.
+* `500 Illegal base64 character: '-'` when parsing JWT secret: ensure your secret is correct Base64 or provide raw secret bytes properly (or set a simple raw string for development).
+* `Key byte array is 136 bits` — use a longer secret (>= 256 bits) or generate programmatically.
+* `Cannot serialize` on wallet response — prefer returning DTOs (e.g. `WalletResponse`) instead of entities to avoid lazy-loading or bidirectional serialization issues.
+* Flyway migration errors: view SQL in `src/main/resources/db/migration` and adjust SQL dialect for Postgres (use `SERIAL` or `BIGSERIAL` or `GENERATED BY DEFAULT AS IDENTITY` instead of `AUTO_INCREMENT`).
+* Docker port conflict: stop local database or change mapping in `docker-compose.yml`.
 
 ---
 
-## 🧪 Testing with Swagger or Postman
+## Next steps I can do for you (pick one):
 
-* Register → Login → Copy token
-* Create wallet(s)
-* Send transaction requests
-* View errors / success responses
+* ✅ Add `docker-compose` that includes Redis and everything wired
+* ✅ Add a production-ready `Dockerfile` and minor optimizations
+* ✅ Add a `RedisRateLimiter` implementation + filter
+* ✅ Add a sample React + Tailwind frontend minimal demo
+* ✅ Create an exportable Postman collection
+* ✅ Improve security headers & CORS config
 
-Everything is interactive in Swagger.
-
----
-
-## 📬 Contact
-
-If you want to contribute, open a pull request or create an issue.
+Tell me which to generate next and I will add it directly into the repo (Docker + Redis, RateLimiter, Postman, or README extras).
 
 ---
 
-FinFlow is designed as a clean, production-style portfolio backend project — ideal for interviews, showcasing code quality, and real-world reasoning.
+**Enjoy — show this in your portfolio!**
