@@ -214,15 +214,6 @@ If you prefer lightweight controller tests without spinning DB, add `@WebMvcTest
 
 ---
 
-## Next steps I can do for you (pick one):
-
-* ✅ Add `docker-compose` that includes Redis and everything wired
-* ✅ Add a production-ready `Dockerfile` and minor optimizations
-* ✅ Add a `RedisRateLimiter` implementation + filter
-* ✅ Add a sample React + Tailwind frontend minimal demo
-* ✅ Create an exportable Postman collection
-* ✅ Improve security headers & CORS config
-
 Tell me which to generate next and I will add it directly into the repo (Docker + Redis, RateLimiter, Postman, or README extras).
 
 ---
