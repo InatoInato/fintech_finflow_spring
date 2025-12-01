@@ -1,4 +1,4 @@
-package com.finflow.finflow.auth.security;
+package com.finflow.finflow.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
