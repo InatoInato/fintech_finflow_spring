@@ -15,6 +15,7 @@ This repository contains a Spring Boot backend implementing:
 * Optional Redis for caching / rate-limiting
 * OpenAPI / Swagger UI
 * Global error handling and validation
+* Swagger `http://localhost:8080/swagger-ui/index.html`
 
 This README explains how to run the project locally, with Docker, how to call endpoints (curl examples), how to enable Redis, and troubleshooting notes.
 
@@ -22,7 +23,7 @@ This README explains how to run the project locally, with Docker, how to call en
 
 ## Prerequisites
 
-* Java 21+ / JDK 25 (project compiled with Java 25 in dev) installed
+* Java 21+ / JDK 25 installed
 * Maven
 * Docker & Docker Compose (if running with containers)
 * PostgreSQL (only if you run without Docker)
