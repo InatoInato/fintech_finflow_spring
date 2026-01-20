@@ -1,4 +1,4 @@
-package com.finflow.finflow.auth.entity;
+package com.finflow.finflow.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

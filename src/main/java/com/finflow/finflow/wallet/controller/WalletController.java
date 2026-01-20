@@ -1,7 +1,7 @@
 package com.finflow.finflow.wallet.controller;
 
-import com.finflow.finflow.auth.entity.User;
-import com.finflow.finflow.auth.repository.UserRepository;
+import com.finflow.finflow.user.entity.User;
+import com.finflow.finflow.user.repository.UserRepository;
 import com.finflow.finflow.config.RedisRateLimiter;
 import com.finflow.finflow.exception.TooManyRequestsException;
 import com.finflow.finflow.wallet.dto.TopUpRequest;

@@ -2,7 +2,7 @@ package com.finflow.finflow.auth.controller;
 
 import com.finflow.finflow.auth.dto.AuthResponse;
 import com.finflow.finflow.auth.dto.InputRequest;
-import com.finflow.finflow.auth.entity.User;
+import com.finflow.finflow.user.entity.User;
 import com.finflow.finflow.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

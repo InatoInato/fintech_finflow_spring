@@ -1,6 +1,6 @@
 package com.finflow.finflow.wallet.service;
 
-import com.finflow.finflow.auth.entity.User;
+import com.finflow.finflow.user.entity.User;
 import com.finflow.finflow.wallet.entity.Wallet;
 
 import java.math.BigDecimal;

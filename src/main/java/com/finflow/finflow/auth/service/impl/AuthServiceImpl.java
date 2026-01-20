@@ -2,8 +2,8 @@ package com.finflow.finflow.auth.service.impl;
 
 import com.finflow.finflow.auth.dto.AuthResponse;
 import com.finflow.finflow.auth.dto.InputRequest;
-import com.finflow.finflow.auth.entity.User;
-import com.finflow.finflow.auth.repository.UserRepository;
+import com.finflow.finflow.user.entity.User;
+import com.finflow.finflow.user.repository.UserRepository;
 import com.finflow.finflow.config.security.JwtService;
 import com.finflow.finflow.auth.service.AuthService;
 import com.finflow.finflow.exception.InvalidCredentialsException;

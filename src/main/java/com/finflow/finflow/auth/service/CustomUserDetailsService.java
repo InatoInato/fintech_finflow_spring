@@ -1,7 +1,7 @@
 package com.finflow.finflow.auth.service;
 
-import com.finflow.finflow.auth.entity.User;
-import com.finflow.finflow.auth.repository.UserRepository;
+import com.finflow.finflow.user.entity.User;
+import com.finflow.finflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,6 +1,6 @@
-package com.finflow.finflow.auth.repository;
+package com.finflow.finflow.user.repository;
 
-import com.finflow.finflow.auth.entity.User;
+import com.finflow.finflow.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
