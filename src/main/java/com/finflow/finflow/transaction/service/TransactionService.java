@@ -6,7 +6,7 @@ import org.springframework.security.core.Authentication;
 import java.math.BigDecimal;
 
 public interface TransactionService {
-    public Transaction createTransaction(Authentication authentication,
+    public Transaction createTransaction(String email,
                                          Long fromWalletId,
                                          Long toWalletId,
                                          BigDecimal amount);

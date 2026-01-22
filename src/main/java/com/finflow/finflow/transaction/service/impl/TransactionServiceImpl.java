@@ -1,7 +1,6 @@
 package com.finflow.finflow.transaction.service.impl;
 
 import com.finflow.finflow.user.entity.User;
-import com.finflow.finflow.user.repository.UserRepository;
 import com.finflow.finflow.exception.BadRequestException;
 import com.finflow.finflow.exception.ForbiddenException;
 import com.finflow.finflow.exception.NotFoundException;
@@ -9,8 +8,9 @@ import com.finflow.finflow.transaction.entity.Transaction;
 import com.finflow.finflow.transaction.entity.TransactionType;
 import com.finflow.finflow.transaction.repository.TransactionRepository;
 import com.finflow.finflow.transaction.service.TransactionService;
+import com.finflow.finflow.user.service.UserService;
 import com.finflow.finflow.wallet.entity.Wallet;
-import com.finflow.finflow.wallet.repository.WalletRepository;
+import com.finflow.finflow.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -25,20 +25,19 @@ import java.util.Objects;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final WalletRepository walletRepository;
-    private final UserRepository userRepository;
+    private final WalletService walletService;
+    private final UserService userService;
 
     @Transactional
     @Override
-    public Transaction createTransaction(Authentication auth,
+    public Transaction createTransaction(String email,
                                          Long fromWalletId,
                                          Long toWalletId,
                                          BigDecimal amount) {
 
         validateRequest(fromWalletId, toWalletId, amount);
 
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = userService.getUserByEmail(email);
 
         Wallet fromWallet = (fromWalletId != null)
                 ? getWalletOrThrow(fromWalletId)
@@ -87,8 +86,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private Wallet getWalletOrThrow(Long id) {
-        return walletRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Wallet not found: " + id));
+        return walletService.getWalletById(id);
     }
 
     private void validateOwnership(User user, Wallet wallet) {
@@ -104,8 +102,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private void saveWallets(Wallet fromWallet, Wallet toWallet) {
-        if (fromWallet != null) walletRepository.save(fromWallet);
-        if (toWallet != null) walletRepository.save(toWallet);
+        if (fromWallet != null) walletService.save(fromWallet);
+        if (toWallet != null) walletService.save(toWallet);
     }
 
 

@@ -1,0 +1,34 @@
+server:
+  port: 0   # random port
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:finflow-test;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false   # usually migrations don't need for tests
+
+  data:
+    redis:
+      host: localhost
+      port: 0
+
+application:
+  security:
+    jwt:
+      secret-key: test-test-test-secret-key
+
+logging:
+  level:
+    root: WARN

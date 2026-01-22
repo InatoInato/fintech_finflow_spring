@@ -41,12 +41,12 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional
-    public Wallet createDefaultWallet(User user) {
+    public void createDefaultWallet(User user) {
         Wallet wallet = new Wallet();
         wallet.setUser(user);
         wallet.setCurrency("USD");
         wallet.setBalance(BigDecimal.ZERO);
-        return walletRepository.save(wallet);
+        walletRepository.save(wallet);
     }
 
     @Override
@@ -72,6 +72,18 @@ public class WalletServiceImpl implements WalletService {
         wallet.setBalance(newBalance);
         walletRepository.save(wallet);
     }
+
+    @Override
+    public Wallet getWalletById(Long id) {
+        return walletRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Wallet not found"));
+    }
+
+    @Override
+    public Wallet save(Wallet wallet) {
+        return walletRepository.save(wallet);
+    }
+
 
 
 }
