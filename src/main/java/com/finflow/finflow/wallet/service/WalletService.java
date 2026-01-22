@@ -8,4 +8,7 @@ import java.math.BigDecimal;
 public interface WalletService {
     public Wallet getWalletByUser(User user);
     public Wallet topUp(Long walletId, BigDecimal amount);
+    public Wallet createDefaultWallet(User user);
+    public Wallet getWalletForUser(Long walletId, User user);
+    public void adjustBalance(Wallet wallet, BigDecimal amount);
 }

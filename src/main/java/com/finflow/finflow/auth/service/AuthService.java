@@ -9,5 +9,4 @@ import java.util.List;
 public interface AuthService {
     public AuthResponse register(InputRequest request);
     public AuthResponse login(InputRequest request);
-    public List<User> getAllUsers();
 }

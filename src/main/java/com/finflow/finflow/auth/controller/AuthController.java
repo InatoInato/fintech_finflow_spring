@@ -24,11 +24,6 @@ public class AuthController {
         return ResponseEntity.ok("Hello from Java");
     }
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers(){
-        return ResponseEntity.ok(authService.getAllUsers());
-    }
-
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody InputRequest request){
         return ResponseEntity.ok(authService.register(request));
@@ -40,7 +35,6 @@ public class AuthController {
         String email = auth.getName();
         return ResponseEntity.ok("Transactions for " + email);
     }
-
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody InputRequest request){

@@ -8,8 +8,10 @@ import com.finflow.finflow.config.security.JwtService;
 import com.finflow.finflow.auth.service.AuthService;
 import com.finflow.finflow.exception.InvalidCredentialsException;
 import com.finflow.finflow.exception.UserAlreadyExistsException;
+import com.finflow.finflow.user.service.UserService;
 import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.repository.WalletRepository;
+import com.finflow.finflow.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,26 +21,19 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final WalletRepository walletRepository;
+    private final WalletService walletService;
+    private final UserService userService;
 
     @Override
     public AuthResponse register(InputRequest request) {
-        if (repository.findByEmail(request.email()).isPresent()){
-            throw new UserAlreadyExistsException("User already exists");
-        }
+        User user = userService.createUser(
+                request.email(),
+                passwordEncoder.encode(request.password())
+        );
 
-        User user = new User();
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        repository.save(user);
-
-        Wallet wallet = new Wallet();
-        wallet.setCurrency("USD");
-        wallet.setUser(user);
-        walletRepository.save(wallet);
+        walletService.createDefaultWallet(user);
 
         String token = jwtService.generateToken(request.email());
         return new AuthResponse(user.getEmail(), token);
@@ -46,8 +41,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(InputRequest request) {
-        User user = repository.findByEmail(request.email())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+        User user = userService.getUserByEmail(request.email());
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())){
             throw new InvalidCredentialsException("Invalid email or password");
@@ -55,10 +49,5 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtService.generateToken(user.getEmail());
         return new AuthResponse(user.getEmail(), token);
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        return repository.findAll();
     }
 }
