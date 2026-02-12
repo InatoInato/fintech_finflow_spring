@@ -5,6 +5,7 @@ import com.finflow.finflow.user.repository.UserRepository;
 import com.finflow.finflow.config.RedisRateLimiter;
 import com.finflow.finflow.exception.TooManyRequestsException;
 import com.finflow.finflow.wallet.dto.TopUpRequest;
+import com.finflow.finflow.wallet.dto.WalletResponse;
 import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.service.WalletService;
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public class WalletController {
     private final RedisRateLimiter rateLimiter;
 
     @GetMapping
-    public ResponseEntity<Wallet> getMyWallet(Authentication authentication){
+    public ResponseEntity<WalletResponse> getMyWallet(Authentication authentication){
         String email = authentication.getName();
 
         if (!rateLimiter.isAllowed(email)) {
@@ -32,7 +33,7 @@ public class WalletController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Wallet wallet = walletService.getWalletByUser(user);
+        WalletResponse wallet = walletService.getWalletByUser(user);
         return ResponseEntity.ok(wallet);
     }
 

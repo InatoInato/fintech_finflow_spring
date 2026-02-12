@@ -3,7 +3,6 @@ package com.finflow.finflow.transaction.service.impl;
 import com.finflow.finflow.user.entity.User;
 import com.finflow.finflow.exception.BadRequestException;
 import com.finflow.finflow.exception.ForbiddenException;
-import com.finflow.finflow.exception.NotFoundException;
 import com.finflow.finflow.transaction.entity.Transaction;
 import com.finflow.finflow.transaction.entity.TransactionType;
 import com.finflow.finflow.transaction.repository.TransactionRepository;
@@ -13,7 +12,6 @@ import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -40,11 +38,11 @@ public class TransactionServiceImpl implements TransactionService {
         User user = userService.getUserByEmail(email);
 
         Wallet fromWallet = (fromWalletId != null)
-                ? getWalletOrThrow(fromWalletId)
+                ? walletService.getWalletByIdWithLock(fromWalletId)
                 : null;
 
         Wallet toWallet = (toWalletId != null)
-                ? getWalletOrThrow(toWalletId)
+                ? findWalletEntityOrThrow(toWalletId)
                 : null;
 
         if (fromWallet != null) {
@@ -86,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private Wallet getWalletOrThrow(Long id) {
-        return walletService.getWalletById(id);
+        return walletService.getWalletEntityById(id);
     }
 
     private void validateOwnership(User user, Wallet wallet) {
@@ -113,12 +111,19 @@ public class TransactionServiceImpl implements TransactionService {
 
     private String resolveCurrency(Wallet fromWallet, Wallet toWallet) {
         if (fromWallet != null) return fromWallet.getCurrency();
-        return toWallet.getCurrency();
+        if (toWallet != null) return toWallet.getCurrency();
+        return "USD"; // Default fallback or throw a specific exception
     }
 
     private TransactionType determineType(Wallet fromWallet, Wallet toWallet) {
         if (fromWallet != null && toWallet != null) return TransactionType.TRANSFER;
-        if (fromWallet == null) return TransactionType.DEPOSIT;
-        return TransactionType.WITHDRAW;
+        if (fromWallet == null && toWallet != null) return TransactionType.DEPOSIT;
+        if (fromWallet != null && toWallet == null) return TransactionType.WITHDRAW;
+        throw new BadRequestException("Invalid transaction direction");
+    }
+
+    private Wallet findWalletEntityOrThrow(Long id) {
+
+        return walletService.getWalletEntityById(id);
     }
 }

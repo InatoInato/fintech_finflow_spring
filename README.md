@@ -21,6 +21,25 @@ This README explains how to run the project locally, with Docker, how to call en
 
 ---
 
+## Architecture overview
+
+The project follows a layered architecture:
+
+Controller → Service → Repository
+
+* Controllers: HTTP / REST only
+* Services: business logic, transactions, validations
+* Repositories: persistence layer (Spring Data JPA)
+
+Cross-cutting concerns:
+* Security (JWT filter)
+* Global exception handling
+* Flyway migrations
+* Transactional boundaries at service layer
+
+
+---
+
 ## Prerequisites
 
 * Java 21+ / JDK 25 installed

@@ -4,6 +4,7 @@ import com.finflow.finflow.exception.BadRequestException;
 import com.finflow.finflow.exception.ForbiddenException;
 import com.finflow.finflow.exception.NotFoundException;
 import com.finflow.finflow.user.entity.User;
+import com.finflow.finflow.wallet.dto.WalletResponse;
 import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.repository.WalletRepository;
 import com.finflow.finflow.wallet.service.WalletService;
@@ -20,9 +21,11 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
 
     @Override
-    public Wallet getWalletByUser(User user) {
-        return walletRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Wallet not found"));
+    public WalletResponse getWalletByUser(User user) {
+        Wallet wallet = walletRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("Wallet not found"));
+
+        return mapToResponse(wallet);
     }
 
     @Override
@@ -50,7 +53,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Wallet getWalletForUser(Long walletId, User user) {
+    public void getWalletForUser(Long walletId, User user) {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new NotFoundException("Wallet not found"));
 
@@ -58,7 +61,7 @@ public class WalletServiceImpl implements WalletService {
             throw new ForbiddenException("You don't own this wallet");
         }
 
-        return wallet;
+        mapToResponse(wallet);
     }
 
     @Transactional
@@ -74,16 +77,29 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Wallet getWalletById(Long id) {
+    public Wallet getWalletEntityById(Long id) {
         return walletRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Wallet not found"));
+                .orElseThrow(() -> new NotFoundException("Wallet not found with id: " + id));
     }
 
     @Override
-    public Wallet save(Wallet wallet) {
-        return walletRepository.save(wallet);
+    public void save(Wallet wallet) {
+        walletRepository.save(wallet);
+    }
+
+    @Override
+    public Wallet getWalletByIdWithLock(Long id) {
+        return walletRepository.findByIdWithLock(id)
+                .orElseThrow(() -> new NotFoundException("Wallet not found"));
     }
 
 
-
+    private WalletResponse mapToResponse(Wallet wallet){
+        return new WalletResponse(
+                wallet.getId(),
+                wallet.getBalance(),
+                wallet.getCurrency(),
+                wallet.getUser().getId()
+        );
+    }
 }
