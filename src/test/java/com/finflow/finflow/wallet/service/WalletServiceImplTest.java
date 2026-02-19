@@ -6,6 +6,7 @@ import com.finflow.finflow.user.entity.User;
 import com.finflow.finflow.wallet.entity.Wallet;
 import com.finflow.finflow.wallet.repository.WalletRepository;
 import com.finflow.finflow.wallet.service.impl.WalletServiceImpl;
+import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,5 +81,35 @@ class WalletServiceImplTest {
     void shouldThrowIfAdjustBalanceGoesNegative() {
         assertThrows(BadRequestException.class,
                 () -> walletService.adjustBalance(wallet, BigDecimal.valueOf(-200)));
+    }
+
+    @Test
+    void optimisticLocking_shouldThrowException() {
+        Wallet w1 = new Wallet();
+        w1.setId(1L);
+        w1.setBalance(BigDecimal.valueOf(100));
+        w1.setVersion(0L);
+
+        Wallet w2 = new Wallet();
+        w2.setId(1L);
+        w2.setBalance(BigDecimal.valueOf(100));
+        w2.setVersion(0L);
+
+        when(walletRepository.save(w1)).thenAnswer(invocation -> {
+            Wallet saved = invocation.getArgument(0);
+            saved.setVersion(1L);
+            return saved;
+        });
+
+        when(walletRepository.save(w2)).thenThrow(new OptimisticLockException("Version mismatch"));
+
+        // Act
+        w1.setBalance(w1.getBalance().add(BigDecimal.valueOf(10)));
+        walletRepository.save(w1);
+
+        w2.setBalance(w2.getBalance().add(BigDecimal.valueOf(5)));
+
+        // Assert
+        assertThrows(OptimisticLockException.class, () -> walletRepository.save(w2));
     }
 }
