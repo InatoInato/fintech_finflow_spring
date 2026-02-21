@@ -37,7 +37,9 @@ public class TransactionServiceImpl implements TransactionService {
 
         User user = userService.getUserByEmail(email);
 
-        Wallet fromWallet = walletService.getWalletByIdWithLock(fromWalletId);
+        Wallet fromWallet = (fromWalletId != null)
+                ? walletService.getWalletByIdWithLock(fromWalletId)
+                : null;
 
         Wallet toWallet = (toWalletId != null)
                 ? findWalletEntityOrThrow(toWalletId)

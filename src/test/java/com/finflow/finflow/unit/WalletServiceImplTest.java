@@ -1,4 +1,4 @@
-package com.finflow.finflow.wallet.service;
+package com.finflow.finflow.unit;
 
 import com.finflow.finflow.exception.BadRequestException;
 import com.finflow.finflow.exception.ForbiddenException;

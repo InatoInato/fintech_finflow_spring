@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    # These will be overridden by Testcontainers
+    url: jdbc:postgresql://localhost:5432/finflow_test
+    username: test
+    password: test
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+logging:
+  level:
+    com.finflow: DEBUG
+    org.springframework.security: DEBUG

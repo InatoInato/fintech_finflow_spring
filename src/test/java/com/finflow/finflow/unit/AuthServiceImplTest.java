@@ -1,4 +1,4 @@
-package com.finflow.finflow.auth.service;
+package com.finflow.finflow.unit;
 
 import com.finflow.finflow.auth.dto.AuthResponse;
 import com.finflow.finflow.auth.dto.InputRequest;
